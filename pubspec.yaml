@@ -1,0 +1,41 @@
+name: lemon_clasificator_cinta
+description: "Lemon Clasificator Cinta - Sistema de clasificación de limones"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  fl_chart: ^0.66.1
+  image_picker: ^1.0.4
+  flutter_local_notifications: ^17.0.0
+  permission_handler: ^11.0.0
+  flutter_bluetooth_serial: ^0.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: "^0.14.3"   # 👈 Agregado
+
+flutter:
+  uses-material-design: true
+  assets:
+    - images/fondo.png
+    - images/logo.png
+    - images/logo.png.ico
+
+# ============================================================
+# Configuración para el icono de la app
+# ============================================================
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "images/logo.png.ico"
+  # Si quieres un icono adaptativo para Android (opcional), descomenta:
+  # adaptive_icon_background: "assets/icon/background.png"
+  # adaptive_icon_foreground: "assets/icon/foreground.png"
