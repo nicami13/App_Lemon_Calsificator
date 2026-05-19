@@ -340,42 +340,50 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
   @override
   void dispose() {
+    // Cancel listeners but maintain Bluetooth connection
     _dataSubscription?.cancel();
     _connectionSubscription?.cancel();
     _pwmSendTimer?.cancel();
+    // Note: Do NOT disconnect here - connection persists in background
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lemon Clasificator Cinta'),
-        backgroundColor: const Color(0xFFF6D600),
-        foregroundColor: Colors.black87,
-        elevation: 4,
-        actions: [
-          if (_isConnected)
-            IconButton(
-              icon: const Icon(Icons.bluetooth_disabled),
-              onPressed: _disconnect,
-              tooltip: 'Desconectar',
-            ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/fondo.png'),
-            fit: BoxFit.cover,
-          ),
+    return WillPopScope(
+      onWillPop: () async {
+        // Don't disconnect when navigating back - connection persists
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Lemon Clasificator Cinta'),
+          backgroundColor: const Color(0xFFF6D600),
+          foregroundColor: Colors.black87,
+          elevation: 4,
+          actions: [
+            if (_isConnected)
+              IconButton(
+                icon: const Icon(Icons.bluetooth_disabled),
+                onPressed: _disconnect,
+                tooltip: 'Desconectar',
+              ),
+          ],
         ),
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _isConnected
-              ? _buildOperationModesScreen()
-              : _buildDeviceListScreen(),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('images/fondo.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: SafeArea(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _isConnected
+                ? _buildOperationModesScreen()
+                : _buildDeviceListScreen(),
+          ),
         ),
       ),
     );

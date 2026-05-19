@@ -4,11 +4,40 @@ import 'grafica_screen.dart';
 import 'day_detail_screen.dart';
 import 'models/elemento.dart';
 import 'services/api_service.dart';
+import 'services/bluetooth_service.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  final BluetoothService _bluetoothService = BluetoothService();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      if (_bluetoothService.isConnected) {
+        _bluetoothService.disconnect();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,8 +146,9 @@ class _ListaScreenState extends State<ListaScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      print('Error cargando elementos: $e');
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = 'Error: ${e.toString()}';
         _isLoading = false;
       });
     }
@@ -135,17 +165,30 @@ class _ListaScreenState extends State<ListaScreen> {
 
   Widget _buildMainContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
+            strokeWidth: 3,
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Cargando datos...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       );
     }
 
     if (_errorMessage.isNotEmpty) {
       return Center(
         child: Card(
-          color: Colors.red.shade50.withOpacity(0.9),
+          color: Colors.red.shade50.withOpacity(0.95),
           margin: const EdgeInsets.all(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -157,7 +200,7 @@ class _ListaScreenState extends State<ListaScreen> {
                 Text(
                   'Error al cargar datos:\n$_errorMessage',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
@@ -174,11 +217,21 @@ class _ListaScreenState extends State<ListaScreen> {
     return RefreshIndicator(
       onRefresh: _loadElementos,
       child: _dates.isEmpty
-          ? const Center(
-              child: Text(
-                'No hay días registrados',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.inbox, size: 64, color: Colors.white54),
+                const SizedBox(height: 16),
+                const Text(
+                  'No hay días registrados',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _loadElementos,
+                  child: const Text('Cargar datos'),
+                ),
+              ],
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
